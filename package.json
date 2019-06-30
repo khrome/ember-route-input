@@ -1,7 +1,7 @@
 {
   "name": "ember-route-input",
   "version": "0.0.1",
-  "description": "Input controls for routes",
+  "description": "Input controls for ember routes using route actions",
   "keywords": [
     "ember-addon"
   ],
