@@ -5,6 +5,7 @@ An Ember addon to set input (controls which map to a [`ember-route-action-helper
 
 Installation
 ------------------------------------------------------------------------------
+Requires: [`ember-route-action-helper`](https://github.com/dockyard/ember-route-action-helper)), [`ember-browserify`](https://www.npmjs.com/package/ember-browserify)), [`stream-responder-heirarchy`](https://github.com/khrome/stream-responder-heirarchy), [`extended-emitter`](https://github.com/khrome/extended-emitter)
 
 ```
 ember install ember-route-input

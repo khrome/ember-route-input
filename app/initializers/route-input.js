@@ -9,27 +9,27 @@ fnHooks.mutate = function(classDefinition, hooks){
     var originalFns = {};
     var mod = {};
     Object.keys(hooks).forEach(function(hookName){
-      if(!classDefinition.prototype[hookName]){
+        var proto = classDefinition.prototype;
+        originalFns[hookName] = proto[hookName];
         mod[hookName] = function(){
-          var res = hooks[hookName].apply(this, arguments);
-          if(monitor){
-            if(!monitor[hookName]) monitor[hookName] = 1;
-            else monitor[hookName]++;
-          }
-          return res;
+            var res;
+            if(!this._super){
+                if(originalFns[hookName]){
+                    res = originalFns[hookName].apply(this, arguments);
+                    hooks[hookName].apply(this, arguments);
+                }else{
+                    res = hooks[hookName].apply(this, arguments);
+                }
+            }else{
+                this._super.apply(this, arguments);
+                res = hooks[hookName].apply(this, arguments);
+            }
+            if(monitor){
+                if(!monitor[hookName]) monitor[hookName] = 1;
+                else monitor[hookName]++;
+            }
+            return res;
         };
-      }else{
-        originalFns[hookName] = classDefinition.prototype[hookName];
-        mod[hookName] = function(){
-          var res = originalFns[hookName].apply(this, arguments);
-          hooks[hookName].apply(this, arguments);
-          if(monitor){
-            if(!monitor[hookName]) monitor[hookName] = 1;
-            else monitor[hookName]++;
-          }
-          return res;
-        };
-      }
     });
     if(classDefinition.reopen){
         //ember class
@@ -144,7 +144,7 @@ function enableRouteInput(){
                     if(!route.actions[input.keyboard[key]]){
                         throw new Error('no action: '+input.keyboard[key]);
                     }
-                    route.actions[input.keyboard[key]].apply(this, [e]);
+                    route.actions[input.keyboard[key]].apply(route, [e]);
                 })
             });
           });
