@@ -82,20 +82,32 @@ function handleFlag(word, optList, criterion){
     }
 }
 
-function parseControls(str){
+function parseControls(str, mode){
   var res = str.split('|').map(function(word){
     return word.split('+');
   });
   res = res.map(function(arr){
       var ob = {'$and':[]};
-      handleFlag(['ctrlKey', 'ctrl', 'control'], arr, ob['$and']);
-      handleFlag(['shiftKey', 'shift'], arr, ob['$and']);
-      handleFlag(['altKey', 'alt', 'alternate', 'option'], arr, ob['$and']);
-      handleFlag(['metaKey', 'meta', 'command'], arr, ob['$and']);
-      if(arr.length !== 1) throw new Error('ambiguous definition: '+arr.toString());
-      var key = {key:{"$eq":arr[0]}};
-      if(ob['$and'].length == 0) return key;
-      ob['$and'].push(key);
+      switch(mode){
+          case 'keyboard':
+              handleFlag(['ctrlKey', 'ctrl', 'control'], arr, ob['$and']);
+              handleFlag(['shiftKey', 'shift'], arr, ob['$and']);
+              handleFlag(['altKey', 'alt', 'alternate', 'option'], arr, ob['$and']);
+              handleFlag(['metaKey', 'meta', 'command'], arr, ob['$and']);
+              if(arr.length !== 1) throw new Error('ambiguous definition: '+arr.toString());
+              var key = {key:{"$eq":arr[0]}};
+              if(ob['$and'].length == 0) return key;
+              ob['$and'].push(key);
+              break;
+          case 'controller':
+              while(arr.length>1){
+                var criteria = {};
+                criteria[arr.shift()] = {"$eq":true};
+                ob['$and'].push(criteria)
+              }
+              ob['$and'].push({button:{"$eq":arr[0]}});
+
+      }
       return ob;
   });
   return res;
@@ -107,28 +119,37 @@ function enableRouteInput(){
   Context.inputHeirarchy = new Heirarchy({ eventType : 'input' });
   var stream = new Emitter();
 
-  /*document.body.addEventListener('keydown', function(e){
-      stream.emit('keydown', e);
+  Route.reopenClass({
+      addInputSource : function(source, options){
+          Context.inputHeirarchy.tap(options.eventType || options, stream);
+          if(source.setHandler){
+              source.setHandler(function(buttons, axes, buttonUp, axesUp){
+                  Object.keys(buttonUp).forEach(function(releasedButtonName){
+                      var ret = JSON.parse(JSON.stringify(buttons));
+                      Object.keys(axes).forEach(function(axisName){
+                          ret[axisName] = axes[axisName];
+                      });
+                      ret.button = releasedButtonName;
+                      stream.emit(options.eventType || options, ret);
+                  });
+                  if(options.handler){
+                      options.handler(buttons, axes, buttonUp, axesUp);
+                  }
+              });
+          }else{
+              source.addEventListener(options.eventType || options, function(e){
+                  e.stopPropagation();
+                  e.preventDefault();
+                  var clone = eventSimplify(e);
+                  stream.emit(options.eventType || options, clone);
+              });
+          }
+      },
+      bodyInput : function(eventType){
+          Route.addInputSource(document.body, (eventType || 'keypress'))
+      }
   });
-  document.body.addEventListener('keyup', function(e){
-      stream.emit('keyup', e);
-  });*/
-  document.body.addEventListener('keypress', function(e){
-      e.stopPropagation();
-      e.preventDefault();
-      var clone = eventSimplify(e);
-      stream.emit('keypress', clone);
-  });
-  //Context.inputHeirarchy.tap('keydown', stream);
-  //Context.inputHeirarchy.tap('keyup', stream);
-  Context.inputHeirarchy.tap('keypress', stream);
-  var originalExtend = Route.extend;
-  Route.extend = function(){
-    if(arguments[0] && arguments[0].input){
-      arguments[0].input = Object.freeze(arguments[0].input);
-    }
-    return originalExtend.apply(this, arguments);
-  };
+  Route.bodyInput();
   var lastRoute;
   routeModification({
       getHeirarchyNode: function(){
@@ -137,7 +158,7 @@ function enableRouteInput(){
           var node = new Heirarchy.Node({ eventType : 'input' });
           var route = this;
           if(input.keyboard) Object.keys(input.keyboard).forEach(function(key){
-            var conditions = parseControls(key);
+            var conditions = parseControls(key, 'keyboard');
             conditions.forEach(function(condition){
                 node.on('input', condition, function(e){
                     if(!node.active) return; //WTF??
@@ -145,6 +166,19 @@ function enableRouteInput(){
                         throw new Error('no action: '+input.keyboard[key]);
                     }
                     route.actions[input.keyboard[key]].apply(route, [e]);
+                })
+            });
+          });
+          if(input.controller) Object.keys(input.controller).forEach(function(key){
+            var conditions = parseControls(key, 'controller');
+            conditions.forEach(function(condition){
+                node.on('input', condition, function(e){
+                    var type = e.key?input.keyboard:input.controller;
+                    if(!node.active) return; //WTF??
+                    if(!route.actions[type[key]]){
+                        throw new Error('no action: '+type[key]);
+                    }
+                    route.actions[type[key]].apply(route, [e]);
                 })
             });
           });

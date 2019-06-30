@@ -5,7 +5,9 @@ An Ember addon to set input (controls which map to a [`ember-route-action-helper
 
 Installation
 ------------------------------------------------------------------------------
-Requires: [`ember-route-action-helper`](https://github.com/dockyard/ember-route-action-helper)), [`ember-browserify`](https://www.npmjs.com/package/ember-browserify)), [`stream-responder-heirarchy`](https://github.com/khrome/stream-responder-heirarchy), [`extended-emitter`](https://github.com/khrome/extended-emitter)
+Requires: [`ember-route-action-helper`](https://github.com/dockyard/ember-route-action-helper), [`ember-browserify`](https://www.npmjs.com/package/ember-browserify), [`stream-responder-heirarchy`](https://github.com/khrome/stream-responder-heirarchy), [`extended-emitter`](https://github.com/khrome/extended-emitter)
+
+and optionally supports controllers through [`mappable-gamepad`](https://www.npmjs.com/package/mappable-gamepad)
 
 ```
 ember install ember-route-input
@@ -25,6 +27,9 @@ export default Route.extend({
       keyboard : {
         "arrowleft" : "turnLeft",
         "arrowright" : "turnRight",
+      },
+      controller : {
+        "y" : "explode"
       }
     };
   },
@@ -34,11 +39,19 @@ export default Route.extend({
     },
     turnRight : function(){
         //do something
+    },
+    explode : function(){
+        //do something
     }
   }
 });
 ```
 
+To respond to gamepad input:
+
+```js
+Route.addInputSource(require('mappable-gamepad'))
+```
 
 Contributing
 ------------------------------------------------------------------------------
