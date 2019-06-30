@@ -1,7 +1,7 @@
 ember-route-input
 ==============================================================================
 
-[Short description of the addon.]
+An Ember addon to set input (controls which map to a [`ember-route-action-helper`](https://github.com/dockyard/ember-route-action-helper)), allowing simple input bindings which scope only to the route they are defined in and require no other hooks or bindings.
 
 Installation
 ------------------------------------------------------------------------------
@@ -14,7 +14,29 @@ ember install ember-route-input
 Usage
 ------------------------------------------------------------------------------
 
-[Longer description of how to use the addon in apps.]
+In your route:
+
+```js
+export default Route.extend({
+  //...
+  input: function(){
+    return {
+      keyboard : {
+        "ArrowLeft" : "turnLeft",
+        "ArrowRight" : "turnRight",
+      }
+    };
+  },
+  actions : {
+    turnLeft : function(){
+        //do something
+    },
+    turnRight : function(){
+        //do something
+    }
+  }
+});
+```
 
 
 Contributing

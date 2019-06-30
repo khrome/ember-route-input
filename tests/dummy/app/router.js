@@ -6,7 +6,10 @@ const Router = EmberRouter.extend({
   rootURL: config.rootURL
 });
 
-Router.map(function() {
+Router.map(function(){
+  this.route('test-controller');
+  this.route('test-input');
+  this.route('user-input/index', {path:'/user-input/'});
 });
 
 export default Router;
