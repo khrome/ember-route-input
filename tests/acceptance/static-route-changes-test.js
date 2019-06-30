@@ -34,7 +34,7 @@ module('Acceptance | hooks registered', function(hooks) {
     assert.equal(modCallCounts.renderTemplate > 0, true);
     await triggerKeyEvent('h2', 'keypress', 37); //left-arrow
     assert.equal(window.pushLeftSeen > 0, true);
-});
+  });
 
   test('it stops responding to keys after route change', async function(assert){
     var modCallCounts = newMonitor();

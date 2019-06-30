@@ -48,7 +48,8 @@ function routeModification(hooks){
 
 function eventSimplify(e){
     var res = {};
-    res.key = e.key;
+    res.cased = e.key;
+    res.key = e.key.toLowerCase();
     res.keyCode = e.keyCode;
     res.which = e.which;
     res.altKey = e.altKey;
@@ -59,13 +60,38 @@ function eventSimplify(e){
     return res;
 }
 
+function filterFlag(word){
+    var words = Array.isArray(word)?word:[word];
+    return function(i){
+        var lower = i.toLowerCase();
+        return words.reduce(function(agg, value){
+            return agg || lower === value.toLowerCase()
+        }, false);
+    }
+}
+
+function handleFlag(word, optList, criterion){
+    var flag = (Array.isArray(word)?word:[word])[0];
+    var filtered = optList.filter(filterFlag(word));
+    if(filtered.length){
+        var pos = optList.indexOf(filtered[0]);
+        optList.splice(pos, 1);
+        var criteria = {};
+        criteria[flag] = {"$eq":true};
+        criterion.push(criteria);
+    }
+}
+
 function parseControls(str){
   var res = str.split('|').map(function(word){
     return word.split('+');
   });
   res = res.map(function(arr){
       var ob = {'$and':[]};
-      //remove modifiers
+      handleFlag(['ctrlKey', 'ctrl', 'control'], arr, ob['$and']);
+      handleFlag(['shiftKey', 'shift'], arr, ob['$and']);
+      handleFlag(['altKey', 'alt', 'alternate', 'option'], arr, ob['$and']);
+      handleFlag(['metaKey', 'meta', 'command'], arr, ob['$and']);
       if(arr.length !== 1) throw new Error('ambiguous definition: '+arr.toString());
       var key = {key:{"$eq":arr[0]}};
       if(ob['$and'].length == 0) return key;

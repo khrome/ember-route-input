@@ -2,7 +2,7 @@ import Route from '@ember/routing/route';
 
 var controls = {
   keyboard : {
-    "ArrowLeft" : "reactLeft"
+    "arrowleft" : "reactLeft"
   }
 }
 

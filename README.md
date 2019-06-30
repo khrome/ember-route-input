@@ -22,8 +22,8 @@ export default Route.extend({
   input: function(){
     return {
       keyboard : {
-        "ArrowLeft" : "turnLeft",
-        "ArrowRight" : "turnRight",
+        "arrowleft" : "turnLeft",
+        "arrowright" : "turnRight",
       }
     };
   },
