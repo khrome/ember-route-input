@@ -1,12 +1,25 @@
 {
   "name": "ember-route-input",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Input controls for ember routes using route actions",
   "keywords": [
-    "ember-addon"
+    "ember-addon",
+    "keyboard",
+    "cardswipe",
+    "gamepad",
+    "controller",
+    "input"
   ],
   "license": "MIT",
   "author": "Abbey Hawk Sparrow <@khrome> (http://patternweaver.com)",
+  "bugs": {
+        "url": "https://github.com/khrome/ember-route-input/issues"
+    },
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/khrome/ember-route-input.git"
+    },
   "directories": {
     "doc": "doc",
     "test": "tests"

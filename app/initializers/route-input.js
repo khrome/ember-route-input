@@ -82,12 +82,49 @@ function handleFlag(word, optList, criterion){
     }
 }
 
+function compareDates(a,b) {
+        // Compare two dates (could be of any type supported by the convert
+        // function above) and returns:
+        //  -1 : if a < b
+        //   0 : if a = b
+        //   1 : if a > b
+        // NaN : if a or b is an illegal date
+        // NOTE: The code inside isFinite does an assignment (=).
+        return (
+            isFinite(a=convertDate(a).valueOf()) &&
+            isFinite(b=convertDate(b).valueOf()) ?
+            (a>b)-(a<b) :
+            NaN
+        );
+    }
+
+    function convertDate(d) {
+            // Converts the date in d to a date-object. The input can be:
+            //   a date object: returned without modification
+            //  an array      : Interpreted as [year,month,day]. NOTE: month is 0-11.
+            //   a number     : Interpreted as number of milliseconds
+            //                  since 1 Jan 1970 (a timestamp)
+            //   a string     : Any format supported by the javascript engine, like
+            //                  "YYYY/MM/DD", "MM/DD/YYYY", "Jan 31 2009" etc.
+            //  an object     : Interpreted as an object with year, month and date
+            //                  attributes.  **NOTE** month is 0-11.
+            return (
+                d.constructor === Date ? d :
+                d.constructor === Array ? new Date(d[0],d[1],d[2]) :
+                d.constructor === Number ? new Date(d) :
+                d.constructor === String ? new Date(d) :
+                typeof d === "object" ? new Date(d.year,d.month,d.date) :
+                NaN
+            );
+        }
+
 function parseControls(str, mode){
   var res = str.split('|').map(function(word){
     return word.split('+');
   });
   res = res.map(function(arr){
       var ob = {'$and':[]};
+      var criteria;
       switch(mode){
           case 'keyboard':
               handleFlag(['ctrlKey', 'ctrl', 'control'], arr, ob['$and']);
@@ -101,12 +138,21 @@ function parseControls(str, mode){
               break;
           case 'controller':
               while(arr.length>1){
-                var criteria = {};
+                criteria = {};
                 criteria[arr.shift()] = {"$eq":true};
                 ob['$and'].push(criteria)
               }
               ob['$and'].push({button:{"$eq":arr[0]}});
-
+              break;
+          case 'cardswipe':
+            ob['$and'].push({track_one:{"$exists":true}});
+            ob['$and'].push({track_two:{"$exists":true}});
+            arr.pop();
+            while(arr.length>0){
+                criteria = {};
+                criteria[arr.shift()] = {"$eq":true};
+                ob['$and'].push(criteria)
+            }
       }
       return ob;
   });
@@ -137,12 +183,32 @@ function enableRouteInput(){
                   }
               });
           }else{
-              source.addEventListener(options.eventType || options, function(e){
-                  e.stopPropagation();
-                  e.preventDefault();
-                  var clone = eventSimplify(e);
-                  stream.emit(options.eventType || options, clone);
-              });
+              if(source.Scanner && source.stdIn && source.fake){
+                  var Swipe = source;
+                  var el = options.el || document.body;
+                  var scanner = new Swipe.Scanner();
+                  new Swipe({
+                      scanner : scanner,
+                      onScan : function(swipeData){
+                          if(!(swipeData && swipeData.track_one && swipeData.track_two)) return;
+                          stream.emit(options.eventType || options, swipeData);
+                          swipeData.expired = compareDates(swipeData.expiration, new Date()) < 0;
+                          swipeData.valid = !swipeData.expired;
+                          swipeData[swipeData.type.toLowerCase()] = true;
+                          stream.emit(options.eventType || options, swipeData);
+                      }
+                  });
+                  el.addEventListener(options.keyboardEventType || 'keypress', function(e){
+                      scanner.input(e.key);
+                  });
+              }else{
+                  source.addEventListener(options.eventType || options, function(e){
+                      e.stopPropagation();
+                      e.preventDefault();
+                      var clone = eventSimplify(e);
+                      stream.emit(options.eventType || options, clone);
+                  });
+              }
           }
       },
       bodyInput : function(eventType){
@@ -173,7 +239,22 @@ function enableRouteInput(){
             var conditions = parseControls(key, 'controller');
             conditions.forEach(function(condition){
                 node.on('input', condition, function(e){
-                    var type = e.key?input.keyboard:input.controller;
+                    if(!e.button) return;
+                    var type = input.controller;
+                    if(!node.active) return; //WTF??
+                    if(!route.actions[type[key]]){
+                        throw new Error('no action: '+type[key]);
+                    }
+                    route.actions[type[key]].apply(route, [e]);
+                })
+            });
+          });
+          if(input.cardswipe) Object.keys(input.cardswipe).forEach(function(key){
+            var conditions = parseControls(key, 'cardswipe');
+            conditions.forEach(function(condition){
+                node.on('input', condition, function(e){
+                    if(!e.account) return;
+                    var type = input.cardswipe;
                     if(!node.active) return; //WTF??
                     if(!route.actions[type[key]]){
                         throw new Error('no action: '+type[key]);

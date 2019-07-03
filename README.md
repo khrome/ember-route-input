@@ -1,13 +1,17 @@
 ember-route-input
 ==============================================================================
 
+[![NPM version](https://img.shields.io/npm/v/ember-route-input.svg)]()
+[![npm](https://img.shields.io/npm/dt/ember-route-input.svg)]()
+[![Travis](https://img.shields.io/travis/khrome/ember-route-input.svg)]()
+
 An Ember addon to set input (controls which map to a [`ember-route-action-helper`](https://github.com/dockyard/ember-route-action-helper)), allowing simple input bindings which scope only to the route they are defined in and require no other hooks or bindings.
 
 Installation
 ------------------------------------------------------------------------------
 Requires: [`ember-route-action-helper`](https://github.com/dockyard/ember-route-action-helper), [`ember-browserify`](https://www.npmjs.com/package/ember-browserify), [`stream-responder-heirarchy`](https://github.com/khrome/stream-responder-heirarchy), [`extended-emitter`](https://github.com/khrome/extended-emitter)
 
-and optionally supports controllers through [`mappable-gamepad`](https://www.npmjs.com/package/mappable-gamepad)
+and optionally supports controllers through [`mappable-gamepad`](https://www.npmjs.com/package/mappable-gamepad) and magnetic card swipes through [`card-swipe`](https://www.npmjs.com/package/card-swipe)
 
 ```
 ember install ember-route-input
@@ -27,22 +31,12 @@ export default Route.extend({
       keyboard : {
         "arrowleft" : "turnLeft",
         "arrowright" : "turnRight",
-      },
-      controller : {
-        "y" : "explode"
       }
     };
   },
   actions : {
-    turnLeft : function(){
-        //do something
-    },
-    turnRight : function(){
-        //do something
-    },
-    explode : function(){
-        //do something
-    }
+    turnLeft : function(e){ /* do something */ },
+    turnRight : function(e){ /* do something */ }
   }
 });
 ```
@@ -51,6 +45,40 @@ To respond to gamepad input:
 
 ```js
 Route.addInputSource(require('mappable-gamepad'))
+export default Route.extend({
+  //...
+  input: function(){
+    return {
+      controller : {
+        "y" : "explode"
+      }
+    };
+  },
+  actions : {
+    explode : function(e){ /* do something */ }
+  }
+});
+```
+
+To respond to input from a connected cardswipe:
+
+```js
+Route.addInputSource(require('card-swipe'))
+export default Route.extend({
+  //...
+  input: function(){
+    return {
+      cardswipe : {
+        "invalid+credit" : "suggestAnotherCard",
+        "valid+credit" : "processTransactionIfReady",
+      }
+    };
+  },
+  actions : {
+    suggestAnotherCard : function(e){ /* do something */ },
+    processTransactionIfReady : function(e){ /* do something */ }
+  }
+});
 ```
 
 Contributing
