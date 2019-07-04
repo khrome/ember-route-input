@@ -3,7 +3,6 @@ ember-route-input
 
 [![NPM version](https://img.shields.io/npm/v/ember-route-input.svg)]()
 [![npm](https://img.shields.io/npm/dt/ember-route-input.svg)]()
-[![Travis](https://img.shields.io/travis/khrome/ember-route-input.svg)]()
 
 An Ember addon to set input (controls which map to a [`ember-route-action-helper`](https://github.com/dockyard/ember-route-action-helper)), allowing simple input bindings which scope only to the route they are defined in and require no other hooks or bindings.
 
@@ -80,6 +79,17 @@ export default Route.extend({
   }
 });
 ```
+
+Roadmap
+-------
+
+Upcoming Features
+- barcode scanner support
+- QR scanning support
+- NFC scanner
+- Support for controller actions
+- make browserify optional
+
 
 Contributing
 ------------------------------------------------------------------------------
