@@ -10,17 +10,42 @@ Installation
 ------------------------------------------------------------------------------
 Requires: [`ember-route-action-helper`](https://github.com/dockyard/ember-route-action-helper), [`ember-browserify`](https://www.npmjs.com/package/ember-browserify), [`stream-responder-heirarchy`](https://github.com/khrome/stream-responder-heirarchy), [`extended-emitter`](https://github.com/khrome/extended-emitter)
 
-and optionally supports controllers through [`mappable-gamepad`](https://www.npmjs.com/package/mappable-gamepad) and magnetic card swipes through [`card-swipe`](https://www.npmjs.com/package/card-swipe)
+and optionally supports:
+- controllers through [`mappable-gamepad`](https://www.npmjs.com/package/mappable-gamepad)
+- magnetic card swipes through [`card-swipe`](https://www.npmjs.com/package/card-swipe)
+- barcodes through [`barcode-scanner`](https://www.npmjs.com/package/barcode-scanner)
 
 ```
 ember install ember-route-input
 ```
+you'll also want an initializer to customize your bindings
 
+```
+ember g initializer input-init
+```
 
 Usage
 ------------------------------------------------------------------------------
+There are a few different supported input types:
 
-In your route:
+<h2>Keyboard</h2>
+
+- **Main Field** : `.key`
+- **Supported Modifiers** :
+    - `shift`
+    - `ctrl`/`control`
+    - `alt`/`alternate`/`option`
+- **Input Identifier** : 'keyboard'
+
+**Initialize**
+
+```js
+import Route from '@ember/routing/route';
+//...
+//bind to keypress on document.body
+Route.bodyInput();
+```
+**In the Route**
 
 ```js
 export default Route.extend({
@@ -40,10 +65,22 @@ export default Route.extend({
 });
 ```
 
-To respond to gamepad input:
+<h2>Controllers</h2>
+- **Main Field** : `.button`
+- **Supported Modifiers** :
+    - all other keys are supported : each button-up event that triggers an event will have all other pressed keys as available modifiers
+- **Input Identifier** : 'controller'
+
+**Initialize**
+```js
+import Route from '@ember/routing/route';
+//...
+//bind to gamepad through the Web API
+Route.addInputSource(require('mappable-gamepad'))
+```
+**In the Route**
 
 ```js
-Route.addInputSource(require('mappable-gamepad'))
 export default Route.extend({
   //...
   input: function(){
@@ -59,7 +96,24 @@ export default Route.extend({
 });
 ```
 
-To respond to input from a connected cardswipe:
+<h2>Card Swipe</h2>
+
+- **Main Field** : `.account`
+- **Supported Modifiers** :
+    - `visa`
+    - `mastercard`
+    - `valid`/`invalid`
+- **Input Identifier** : 'cardswipe'
+
+**Initialize**
+
+```js
+import Route from '@ember/routing/route';
+//...
+//bind to keypress on document.body (same as the keyboard)
+Route.bodyInput();
+```
+**In the Route**
 
 ```js
 Route.addInputSource(require('card-swipe'))
@@ -80,14 +134,71 @@ export default Route.extend({
 });
 ```
 
+<h2>Barcode Scanner</h2>
+Barcode scanner support is only designed for [`ember-electron`](https://ember-electron.js.org/), other setups might work, but no guarantees (and definitely not the browser).
+
+- **Main Field** : `.scan`
+- **Supported Modifiers** :
+    - `upc`, `upcA`
+    - `ean`, `ean8`, `ean13`
+    - `code128`
+    - `codabar`
+- **Input Identifier** : 'barcodescanner'
+
+**Initialize**
+
+```js
+import Route from '@ember/routing/route';
+const Scanner = requireNode('barcode-scanner/event-adapter/client.js');
+
+Route.addInputSource(Scanner)
+```
+
+**electron main**
+
+```js
+const BarcodeScanner = require('barcode-scanner');
+const Scanner = require('barcode-scanner/event-adapter/server.js');
+const { ipcMain } = require('electron');
+
+var scanner = new Scanner({
+    name : 'barcode',
+    scanner : BarcodeScanner,
+    emitter: ipcMain,
+    transformEmitterFn :(emitter, event) => event.sender
+});
+scanner.listenForDeviceListRequest();
+scanner.listenForDeviceListenerRequest();
+```
+
+**In the Route**
+
+```js
+export default Route.extend({
+  //...
+  input: function(){
+    return {
+      barcodescanner : {
+        "ean+barcode" : "lookupOnAmazon",
+        "code128+barcode" : "lookupInInventory",
+      }
+    };
+  },
+  actions : {
+    lookupOnAmazon : function(e){ /* do something */ },
+    lookupInInventory : function(e){ /* do something */ }
+  }
+});
+```
+
 Roadmap
 -------
 
-Upcoming Features
-- barcode scanner support
+Upcoming Features (PRs Welcome!)
+- config interfaces for supported inputs
 - QR scanning support
 - NFC scanner
-- Support for controller actions
+- Support for controller actions, too
 - make browserify optional
 
 

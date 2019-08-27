@@ -18,6 +18,7 @@ export default Route.extend({
   actions : {
     reactLeft : function(){
         window.pushLeftSeen++;
+        console.log('4!!')
     }
   }
 });

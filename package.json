@@ -1,6 +1,6 @@
 {
   "name": "ember-route-input",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Input controls for ember routes using route actions",
   "keywords": [
     "ember-addon",
@@ -8,23 +8,19 @@
     "cardswipe",
     "gamepad",
     "controller",
+    "barcodes",
     "input"
   ],
   "license": "MIT",
   "author": "Abbey Hawk Sparrow <@khrome> (http://patternweaver.com)",
   "bugs": {
-        "url": "https://github.com/khrome/ember-route-input/issues"
-    },
-    "license": "MIT",
-    "repository": {
-        "type": "git",
-        "url": "git://github.com/khrome/ember-route-input.git"
-    },
+    "url": "https://github.com/khrome/ember-route-input/issues"
+  },
+  "repository": "https://github.com/khrome/ember-route-input",
   "directories": {
     "doc": "doc",
     "test": "tests"
   },
-  "repository": "",
   "scripts": {
     "build": "ember build",
     "lint:js": "eslint ./*.js addon addon-test-support app config lib server test-support tests",
@@ -35,7 +31,8 @@
   "dependencies": {
     "ember-cli-babel": "^6.6.0",
     "ember-cli-htmlbars": "^2.0.5",
-    "ember-fn-hooks": "0.0.1"
+    "ember-fn-hooks": "0.0.1",
+    "extended-emitter": "^1.0.3"
   },
   "devDependencies": {
     "broccoli-asset-rev": "^2.4.5",
@@ -63,6 +60,7 @@
     "eslint-plugin-ember": "^5.0.0",
     "eslint-plugin-node": "^6.0.1",
     "loader.js": "^4.2.3",
+    "trace-buster": "*",
     "stream-responder-heirarchy": "0.0.1"
   },
   "engines": {
